@@ -5,7 +5,6 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
 from pages.login_page import LoginPage
-from pages.links_page import LinksPage
 
 from dotenv import load_dotenv; load_dotenv()
 
