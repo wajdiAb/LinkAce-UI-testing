@@ -27,9 +27,10 @@ def build_driver():
 class TestAddLink(unittest.TestCase):
     def setUp(self):
         self.driver = build_driver()
-        self.base_url = os.getenv("LinkAce_URL", "http://localhost:80")
-        self.email = os.getenv("LINKACE_EMAIL")
-        self.password = os.getenv("LINKACE_PASSWORD")
+        # self.base_url = os.getenv("LinkAce_URL", "http://localhost:80")
+        self.base_url = os.getenv("LINKACE_URL", "http://localhost:8080")
+        self.email = os.getenv("LINKACE_EMAIL","wagde.abo164@gmail.com")
+        self.password = os.getenv("LINKACE_PASSWORD","password")
         if not self.email or not self.password:
             raise RuntimeError("Missing LINKACE_EMAIL or LINKACE_PASSWORD env vars")
 

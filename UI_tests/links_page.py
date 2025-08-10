@@ -2,7 +2,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-BASE_URL = "http://localhost:80"  # Adjust this if your base URL is different
+BASE_URL = "http://localhost:8080"  # Adjust this if your base URL is different
 
 class LinksPage:
     def __init__(self, driver):
