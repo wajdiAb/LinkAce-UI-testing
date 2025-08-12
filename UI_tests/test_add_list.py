@@ -1,62 +1,45 @@
+# UI_tests/test_add_list.py
+import os
+import uuid
 import unittest
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 
-from selenium.webdriver.chrome.options import Options
-options = Options()
-options.add_argument("--headless")
-options.add_argument("--no-sandbox")   # this option is also needed sometimes when running in CI. It disables security features of Chrome
 
-driver = webdriver.Chrome(options=options)
+from pages.login_page import LoginPage   # reuse your existing POM
+from pages.lists_page import ListsPage
+from dotenv import load_dotenv; load_dotenv()
+from UI_tests.utils import build_driver
+from pages.lists_page import ListsPage
+
+
+
 
 class TestAddList(unittest.TestCase):
     def setUp(self):
-        self.driver = webdriver.Chrome()
-        self.driver.get("http://localhost:80/login")
-        self.driver.maximize_window()
+        self.driver = build_driver()
 
-    def test_add_list(self):
-        driver = self.driver
+        self.base_url = os.getenv("LINKACE_URL")
+        self.email = os.getenv("LINKACE_EMAIL")
+        self.password = os.getenv("LINKACE_PASSWORD")
+        if not self.email or not self.password:
+            raise RuntimeError("Missing LINKACE_EMAIL or LINKACE_PASSWORD env vars")
+        
+        self.driver.get(f"{self.base_url}/login")
+        self.login_page = LoginPage(self.driver)
+        self.login_page.login(self.email, self.password)
 
-        # Login
-        driver.find_element(By.NAME, "email").send_keys("wagde.abo164@gmail.com")
-        driver.find_element(By.NAME, "password").send_keys("Wajdi0355", Keys.RETURN)
-
-        # Wait for dashboard
-        WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, "a[href*='/links']"))
-        )
-
-        # Navigate to Lists page
-        driver.get("http://localhost:80/lists")
-
-        # Click "Add List" button
-        WebDriverWait(driver, 10).until(
-            EC.element_to_be_clickable((By.CSS_SELECTOR, "a[href*='/lists/create']"))
-        ).click()
-
-        # Fill list form
-        WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.NAME, "name"))
-        ).send_keys("My Test List")
-
-        driver.find_element(By.NAME, "description").send_keys("This is a Selenium-created list.")
-
-        # Submit form
-        driver.find_element(By.CSS_SELECTOR, "button[type='submit']").click()
-
-        # Assert list appears in list table
-        success_message = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.CLASS_NAME, "alert-success"))
-        )
-        self.assertIn("created", success_message.text.lower())
 
     def tearDown(self):
         self.driver.quit()
 
+    def test_add_list(self):
+        lists_page = ListsPage(self.driver)
+        list_name = f"UI List {uuid.uuid4().hex[:6]}"
+        lists_page.add_list(list_name, description="Created by automated UI test.")
+        assert lists_page.is_list_present(list_name), f"List '{list_name}' was not found after creation."
+
+        # Clean up: delete the list
+        lists_page.delete_list(list_name)
+        assert not lists_page.is_list_present(list_name), f"List '{list_name}' was not deleted successfully."
 
 if __name__ == "__main__":
     unittest.main()

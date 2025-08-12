@@ -1,7 +1,7 @@
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from pages.links_page import LinksPage
+from pages.home_page import HomePage
 
 class LoginPage:
     def __init__(self, driver):
@@ -36,4 +36,4 @@ class LoginPage:
         # Optionally wait for post-login redirect here:
         # WebDriverWait(self.driver, 10).until(EC.title_contains("Dashboard"))
         
-        return LinksPage(self.driver)
+        return HomePage(self.driver)

@@ -4,12 +4,12 @@ from selenium.webdriver.support import expected_conditions as EC
 
 BASE_URL = "http://localhost:8080"  # Adjust this if your base URL is different
 
-class LinksPage:
+class HomePage:
     def __init__(self, driver):
         self.driver = driver
         # Wait for dashboard/home page to load after login
         WebDriverWait(self.driver, 10).until(
-            lambda d: "Dashboard" in d.title or "Links" in d.title
+            lambda d: "Dashboard" in d.title
         )
 
     def click_quick_add_link(self):
@@ -46,13 +46,27 @@ class LinksPage:
 
 
     def is_link_present(self, title):
+        self.go_home()
+        title = title.strip().lower()
 
+        # wait for the Recent Links list
+        WebDriverWait(self.driver, 10).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, "ul.link-listing"))
+        )
+
+        # find an <a> in Recent Links whose normalized text contains the needle
+        xpath = (
+            "//ul[contains(@class,'link-listing')]"
+            "//a[contains(@class,'list-group-item')][contains("
+            "translate(normalize-space(.), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), "
+            f"'{title}')]"
+        )
         try:
             WebDriverWait(self.driver, 10).until(
-                EC.presence_of_element_located((By.XPATH, f"//*[text()='{title}']"))
+                EC.presence_of_element_located((By.XPATH, xpath))
             )
             return True
-        except:
+        except Exception:
             return False
         
 
@@ -71,19 +85,22 @@ class LinksPage:
             EC.presence_of_element_located((By.XPATH, "//div[contains(@class,'card-header')][normalize-space()='Recent Links']"))
         )
         return self
+    
+
 
     def delete_link(self, text):
         """From Home, open the recent link that contains `text`, then delete on details page."""
         # Ensure we’re on home first
-        self.go_to_links()
+        self.go_home()
 
         # Open the link from 'Recent Links'
         link_el = WebDriverWait(self.driver, 10).until(
-            EC.element_to_be_clickable((
-                By.XPATH,
-                "//div[.//h2[contains(.,'Recent Links')]]//a[contains(., normalize-space($t))]"
-            )),
-            params={"t": text},
+            EC.element_to_be_clickable(
+                (
+                    By.XPATH,
+                    f"//div[.//h2[contains(.,'Recent Links')]]//a[contains(normalize-space(), '{text}')]"
+                )
+            )
         )
         link_el.click()
 
